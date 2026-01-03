@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTripStore } from './store/tripStore';
 import Layout from './components/Layout';
@@ -16,18 +17,18 @@ const App: React.FC = () => {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
   
-  // Password Reset State
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   
   const [gpsDrivers, setGpsDrivers] = useState<Driver[]>([]);
-  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [gpsTrucks, setGpsTrucks] = useState<Truck[]>([]);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const [editingTripId, setEditingTripId] = useState<string | null>(null);
 
   const { 
     trips, addTrip, deleteTrip, updateTrip,
     manualDrivers, addManualDriver, removeManualDriver,
+    manualTrucks, addManualTruck, removeManualTruck,
     manualCities, addManualCity, removeManualCity,
     users, addUser, removeUser, updateUserPassword
   } = useTripStore();
@@ -41,7 +42,7 @@ const App: React.FC = () => {
         try {
           const data = await fetchGPSData();
           setGpsDrivers(data.drivers);
-          setTrucks(data.trucks);
+          setGpsTrucks(data.trucks);
         } catch (err) {
           console.error("Failed to fetch GPS data", err);
         } finally {
@@ -64,7 +65,7 @@ const App: React.FC = () => {
         setLoginError('');
       }
     } else {
-      setLoginError(language === 'en' ? 'Access Denied: Invalid Credentials' : 'تم رفض الدخول: بيانات غير صحيحة');
+      setLoginError(language === 'en' ? 'Unauthorized: Access Key is incorrect.' : 'غير مصرح: مفتاح الدخول غير صحيح.');
     }
   };
 
@@ -86,10 +87,13 @@ const App: React.FC = () => {
   const isAdmin = currentUser?.role === 'admin';
   const canModify = isAdmin || isAccountant;
 
+  // Merge GPS data with manual data for forms
+  const allTrucks = [...gpsTrucks, ...manualTrucks];
+
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 bg-[url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=2075&auto=format&fit=crop')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md"></div>
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
         <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-12 border border-white/20">
           <div className="flex flex-col items-center mb-10">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-6 shadow-2xl shadow-blue-500/40">
@@ -126,15 +130,12 @@ const App: React.FC = () => {
 
   if (showPasswordReset) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
-         <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-12 border border-slate-100">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+         <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-12 border border-slate-100 text-center">
             <h2 className="text-2xl font-black text-slate-900 mb-4">Security Update Required</h2>
-            <p className="text-slate-500 text-sm mb-8 font-medium">This is your initial login. For your security, you must update your Access Key before proceeding to the system.</p>
+            <p className="text-slate-500 text-sm mb-8">This is your initial login. For security, you must update your Access Key before proceeding.</p>
             <form onSubmit={handlePasswordReset} className="space-y-6">
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">New Access Key</label>
-                <input type="password" required className="w-full px-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 font-bold" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Minimum 5 characters" />
-              </div>
+              <input type="password" required className="w-full px-6 py-5 bg-slate-50 border rounded-2xl focus:outline-none focus:border-blue-600 font-bold" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New Access Key (min 5 chars)" />
               <button type="submit" className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest active:scale-95 transition-all">Update & Continue</button>
             </form>
          </div>
@@ -154,22 +155,12 @@ const App: React.FC = () => {
       {activeTab === 'trips' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {!isViewer && (
-            <div className="relative">
-               {isLoadingGPS && (
-                 <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-20 flex items-center justify-center rounded-3xl">
-                    <div className="flex items-center gap-4 px-8 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold animate-bounce shadow-2xl">
-                      📡 <span className="flex flex-col"><span>Pilot-GPS Sync</span><span className="text-[9px] text-blue-400">Fetching...</span></span>
-                    </div>
-                 </div>
-               )}
-               <TripForm onAddTrip={addTrip} drivers={gpsDrivers} manualDrivers={manualDrivers} trucks={trucks} cities={manualCities} language={language} />
-            </div>
+            <TripForm onAddTrip={addTrip} drivers={gpsDrivers} manualDrivers={manualDrivers} trucks={allTrucks} cities={manualCities} language={language} />
           )}
 
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
              <div className="p-8 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
                <div><h3 className="text-xl font-bold text-slate-800">{t.trips}</h3><p className="text-xs text-slate-400 mt-1">Operational registry log.</p></div>
-               <span className="px-5 py-2 bg-blue-50 text-blue-600 text-[10px] font-black rounded-xl uppercase tracking-[0.2em]">{trips.length} Records</span>
              </div>
              <div className="overflow-x-auto">
                <table className="w-full text-left" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -187,43 +178,42 @@ const App: React.FC = () => {
                      <tr key={trip.id} className="hover:bg-blue-50/30 transition-all group">
                        <td className="px-8 py-5 text-sm font-medium text-slate-500">
                          {editingTripId === trip.id ? (
-                           <input type="date" className="bg-white border rounded-lg px-2 py-1 w-full font-bold" defaultValue={trip.date} onBlur={(e) => handleEditTripInline({...trip, date: e.target.value})} />
+                           <input type="date" className="bg-white border rounded px-2 py-1 w-full" defaultValue={trip.date} onBlur={(e) => handleEditTripInline({...trip, date: e.target.value})} />
                          ) : trip.date}
                        </td>
                        <td className="px-8 py-5 font-bold text-slate-900">
                          {editingTripId === trip.id ? (
-                           <input type="text" className="bg-white border rounded-lg px-2 py-1 w-full font-bold" defaultValue={trip.driverName} onBlur={(e) => handleEditTripInline({...trip, driverName: e.target.value})} />
+                           <input type="text" className="bg-white border rounded px-2 py-1 w-full" defaultValue={trip.driverName} onBlur={(e) => handleEditTripInline({...trip, driverName: e.target.value})} />
                          ) : trip.driverName}
                        </td>
                        <td className="px-8 py-5 text-sm">
                          {editingTripId === trip.id ? (
-                            <div className="flex gap-2">
-                               <input type="text" className="bg-white border rounded-lg px-2 py-1 w-24" defaultValue={trip.startPoint} onBlur={(e) => handleEditTripInline({...trip, startPoint: e.target.value})} />
-                               <span className="text-slate-300">→</span>
-                               <input type="text" className="bg-white border rounded-lg px-2 py-1 w-24" defaultValue={trip.endPoint} onBlur={(e) => handleEditTripInline({...trip, endPoint: e.target.value})} />
+                            <div className="flex gap-1">
+                               <input type="text" className="text-xs bg-white border rounded w-20 px-1" defaultValue={trip.startPoint} onBlur={(e) => handleEditTripInline({...trip, startPoint: e.target.value})} />
+                               <input type="text" className="text-xs bg-white border rounded w-20 px-1" defaultValue={trip.endPoint} onBlur={(e) => handleEditTripInline({...trip, endPoint: e.target.value})} />
                             </div>
                          ) : (
                            <div className="flex items-center gap-3">
                               <span className="text-slate-500 font-medium">{trip.startPoint}</span>
-                              <span className="text-blue-400 text-xs">──▶</span>
+                              <span className="text-blue-400 text-xs">→</span>
                               <span className="text-slate-900 font-bold">{trip.endPoint}</span>
                            </div>
                          )}
                        </td>
                        <td className="px-8 py-5 text-sm text-right font-black text-blue-600">
                          {editingTripId === trip.id ? (
-                           <input type="number" className="bg-white border rounded-lg px-2 py-1 w-24 text-right font-black" defaultValue={trip.revenue} onBlur={(e) => handleEditTripInline({...trip, revenue: Number(e.target.value)})} />
-                         ) : `$${trip.revenue?.toLocaleString() || 0}`}
+                           <input type="number" className="bg-white border rounded px-2 py-1 w-24 text-right" defaultValue={trip.revenue} onBlur={(e) => handleEditTripInline({...trip, revenue: Number(e.target.value)})} />
+                         ) : `$${trip.revenue?.toLocaleString()}`}
                        </td>
                        <td className="px-8 py-5 text-center">
                          <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                            {canModify && (
-                             <button onClick={() => setEditingTripId(editingTripId === trip.id ? null : trip.id)} className={`p-2 rounded-lg transition-all ${editingTripId === trip.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400 hover:text-blue-500'}`}>
+                             <button onClick={() => setEditingTripId(editingTripId === trip.id ? null : trip.id)} className={`p-2 rounded-lg transition-all ${editingTripId === trip.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400 hover:text-blue-500'}`}>
                                 {editingTripId === trip.id ? '💾' : '✏️'}
                              </button>
                            )}
                            {isAdmin && (
-                             <button onClick={() => { if(confirm("Confirm deletion of this record?")) deleteTrip(trip.id) }} className="text-slate-400 hover:text-red-500 p-2 bg-slate-100 rounded-lg">🗑️</button>
+                             <button onClick={() => { if(confirm("Confirm Delete?")) deleteTrip(trip.id) }} className="text-slate-400 hover:text-red-500 p-2 bg-slate-100 rounded-lg">🗑️</button>
                            )}
                          </div>
                        </td>
@@ -237,27 +227,14 @@ const App: React.FC = () => {
       )}
 
       {activeTab === 'reports' && <DriverReports trips={trips} language={language} />}
-
       {activeTab === 'settings' && (
         <Settings 
-          language={language} manualDrivers={manualDrivers} manualCities={manualCities} trips={trips} 
-          onAddDriver={addManualDriver} onRemoveDriver={removeManualDriver} onAddCity={addManualCity} onRemoveCity={removeManualCity}
+          language={language} manualDrivers={manualDrivers} manualCities={manualCities} manualTrucks={manualTrucks} trips={trips} 
+          onAddDriver={addManualDriver} onRemoveDriver={removeManualDriver} 
+          onAddCity={addManualCity} onRemoveCity={removeManualCity}
+          onAddTruck={addManualTruck} onRemoveTruck={removeManualTruck}
           currentUserRole={currentUser?.role} users={users} onAddUser={addUser} onRemoveUser={removeUser}
         />
-      )}
-
-      {activeTab === 'gps' && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <div className="bg-slate-900 rounded-[3rem] overflow-hidden aspect-video relative shadow-2xl group border-[16px] border-slate-800/50">
-             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-[6px] z-10 p-12 text-center">
-               <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-5xl mb-10 shadow-2xl shadow-blue-500/40 group-hover:scale-110 transition-transform cursor-pointer border-8 border-white/10">📍</div>
-               <h3 className="text-4xl font-black text-white mb-6 tracking-tight">KSA Pilot-GPS Monitor</h3>
-               <p className="text-slate-300 max-w-xl mx-auto leading-relaxed mb-12 text-lg">Trans-SA Direct Telemetry Bridge.</p>
-               <a href="https://ksa.pilot-gps.com/" target="_blank" rel="noopener noreferrer" className="px-16 py-6 bg-white text-blue-900 font-black rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 text-xl">Access Live Console</a>
-             </div>
-             <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2074&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-30 scale-105"></div>
-          </div>
-        </div>
       )}
     </Layout>
   );
