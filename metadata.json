@@ -1,0 +1,5 @@
+{
+  "name": "TruckTrack - Driver Monitoring System",
+  "description": "A comprehensive internal monitoring system for tracking truck trips, expenses, and driver performance with AI-powered insights and reporting.",
+  "requestFramePermissions": []
+}

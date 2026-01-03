@@ -1,0 +1,60 @@
+
+version: '3.8'
+
+services:
+  # TruckTrack Monitoring App
+  trucktrack-app:
+    build: .
+    container_name: trucktrack_main
+    restart: always
+    networks:
+      - almanhal_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # Static Marketing Website
+  static-site:
+    image: nginx:alpine
+    container_name: almanhal_static
+    restart: always
+    volumes:
+      - ./static-site:/usr/share/nginx/html:ro
+    networks:
+      - almanhal_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # Reverse Proxy (The Entry Point)
+  proxy:
+    image: nginx:alpine
+    container_name: almanhal_proxy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - almanhal_network
+    depends_on:
+      - trucktrack-app
+      - static-site
+
+  # Future Odoo Placeholder
+  # odoo:
+  #   image: odoo:17
+  #   container_name: odoo_future
+  #   networks:
+  #     - almanhal_network
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 2G
+
+networks:
+  almanhal_network:
+    driver: bridge
