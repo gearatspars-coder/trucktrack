@@ -1,11 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Trip, Driver, User, Truck } from '../types';
+import { Trip, Driver, User } from '../types';
 import { translations } from '../i18n';
 
 const STORAGE_KEY_TRIPS = 'truck_track_trips';
 const STORAGE_KEY_DRIVERS = 'truck_track_manual_drivers';
-const STORAGE_KEY_TRUCKS = 'truck_track_manual_trucks';
 const STORAGE_KEY_CITIES = 'truck_track_manual_cities';
 const STORAGE_KEY_USERS = 'truck_track_users';
 
@@ -42,13 +41,6 @@ const INITIAL_USERS: User[] = [
     role: 'admin', 
     password: 'Admin007',
     passwordChanged: false 
-  },
-  { 
-    id: 'acc-1', 
-    email: 'accountant@almanhal.cc', 
-    role: 'accountant', 
-    password: 'acc',
-    passwordChanged: true
   }
 ];
 
@@ -60,11 +52,6 @@ export const useTripStore = () => {
 
   const [manualDrivers, setManualDrivers] = useState<Driver[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_DRIVERS);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [manualTrucks, setManualTrucks] = useState<Truck[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_TRUCKS);
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -85,10 +72,6 @@ export const useTripStore = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_DRIVERS, JSON.stringify(manualDrivers));
   }, [manualDrivers]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_TRUCKS, JSON.stringify(manualTrucks));
-  }, [manualTrucks]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_CITIES, JSON.stringify(manualCities));
@@ -118,23 +101,13 @@ export const useTripStore = () => {
   };
 
   const addManualDriver = (driver: Omit<Driver, 'id'>) => {
-    const newDriver: Driver = { ...driver, id: `MAN-D-${generateId()}` };
+    const newDriver: Driver = { ...driver, id: `MAN-${generateId()}` };
     setManualDrivers(prev => [...prev, newDriver]);
     return newDriver;
   };
 
   const removeManualDriver = (id: string) => {
     setManualDrivers(prev => prev.filter(d => d.id !== id));
-  };
-
-  const addManualTruck = (truck: Omit<Truck, 'id'>) => {
-    const newTruck: Truck = { ...truck, id: `MAN-T-${generateId()}` };
-    setManualTrucks(prev => [...prev, newTruck]);
-    return newTruck;
-  };
-
-  const removeManualTruck = (id: string) => {
-    setManualTrucks(prev => prev.filter(t => t.id !== id));
   };
 
   const addManualCity = (city: string) => {
@@ -165,7 +138,6 @@ export const useTripStore = () => {
   return { 
     trips, addTrip, deleteTrip, updateTrip,
     manualDrivers, addManualDriver, removeManualDriver,
-    manualTrucks, addManualTruck, removeManualTruck,
     manualCities, addManualCity, removeManualCity,
     users, addUser, removeUser, updateUserPassword
   };

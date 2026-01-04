@@ -1,20 +1,16 @@
-
 import React, { useState } from 'react';
-import { Language, Driver, User, UserRole, Truck } from '../types';
+import { Language, Driver, User, UserRole } from '../types';
 import { translations } from '../i18n';
 import { syncStateToDrive } from '../services/googleDriveService';
 
 interface SettingsProps {
   language: Language;
   manualDrivers: Driver[];
-  manualTrucks: Truck[];
   manualCities: string[];
   trips: any[];
   users: User[];
   onAddDriver: (d: Omit<Driver, 'id'>) => void;
   onRemoveDriver: (id: string) => void;
-  onAddTruck: (t: Omit<Truck, 'id'>) => void;
-  onRemoveTruck: (id: string) => void;
   onAddCity: (city: string) => void;
   onRemoveCity: (city: string) => void;
   currentUserRole?: UserRole;
@@ -23,13 +19,12 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({
-  language, manualDrivers, manualTrucks, manualCities, trips, users,
-  onAddDriver, onRemoveDriver, onAddTruck, onRemoveTruck, onAddCity, onRemoveCity,
+  language, manualDrivers, manualCities, trips, users,
+  onAddDriver, onRemoveDriver, onAddCity, onRemoveCity,
   currentUserRole, onAddUser, onRemoveUser
 }) => {
   const t = translations[language];
   const [newDriver, setNewDriver] = useState({ name: '', licenseNumber: '' });
-  const [newTruck, setNewTruck] = useState({ plateNumber: '', model: '' });
   const [newCity, setNewCity] = useState('');
   const [newUser, setNewUser] = useState({ email: '', role: 'viewer' as UserRole, password: '' });
   
@@ -48,15 +43,6 @@ const Settings: React.FC<SettingsProps> = ({
       onAddDriver(newDriver);
       setNewDriver({ name: '', licenseNumber: '' });
       alert("Driver successfully registered.");
-    }
-  };
-
-  const handleAddTruck = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newTruck.plateNumber.trim()) {
-      onAddTruck(newTruck);
-      setNewTruck({ plateNumber: '', model: '' });
-      alert("Truck plate registered to fleet.");
     }
   };
 
@@ -91,7 +77,7 @@ const Settings: React.FC<SettingsProps> = ({
     }
 
     setIsSyncing(true);
-    const state = { manualDrivers, manualTrucks, manualCities, trips, users };
+    const state = { manualDrivers, manualCities, trips, users };
     const time = await syncStateToDrive(state);
     setLastBackup(time);
     setIsSyncing(false);
@@ -126,27 +112,6 @@ const Settings: React.FC<SettingsProps> = ({
                 </div>
               ))}
               {manualDrivers.length === 0 && <p className="text-center py-10 text-slate-300 font-bold text-xs">Manual Registry is Empty.</p>}
-            </div>
-          </div>
-
-          {/* Truck Management */}
-          <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-100 flex flex-col">
-            <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
-              <span className="text-orange-600">🚛</span> {language === 'en' ? 'Manage Truck Fleet' : 'إدارة أسطول الشاحنات'}
-            </h3>
-            <form onSubmit={handleAddTruck} className="flex gap-2 mb-8">
-              <input type="text" required placeholder={language === 'en' ? 'Plate Number' : 'رقم اللوحة'} value={newTruck.plateNumber} onChange={e => setNewTruck({ ...newTruck, plateNumber: e.target.value })} className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-orange-600" />
-              <input type="text" placeholder={language === 'en' ? 'Model' : 'الموديل'} value={newTruck.model} onChange={e => setNewTruck({ ...newTruck, model: e.target.value })} className="w-32 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-orange-600" />
-              <button type="submit" className="px-8 py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all">{t.addBtn}</button>
-            </form>
-            <div className="flex-1 overflow-y-auto max-h-[300px] space-y-4 pr-2 custom-scrollbar">
-              {manualTrucks.map(truck => (
-                <div key={truck.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group border border-transparent hover:border-orange-100 transition-all">
-                  <div><p className="font-bold text-slate-800 text-sm">{truck.plateNumber}</p><p className="text-[10px] text-slate-400 font-black tracking-widest uppercase mt-1">Model: {truck.model || 'UNSET'}</p></div>
-                  <button onClick={() => { if(confirm("Remove truck?")) onRemoveTruck(truck.id) }} className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all">🗑️</button>
-                </div>
-              ))}
-              {manualTrucks.length === 0 && <p className="text-center py-10 text-slate-300 font-bold text-xs">No manual trucks registered.</p>}
             </div>
           </div>
 
