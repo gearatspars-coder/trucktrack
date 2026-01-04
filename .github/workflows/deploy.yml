@@ -1,4 +1,4 @@
-name: Build and Push TruckTrack
+name: build and bush trucktrack
 on:
   push:
     branches: [ "main" ]
