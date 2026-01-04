@@ -1,0 +1,32 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Set this to your primary branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0  # Use the latest version available in 2026
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Navigate to your project folder
+            cd /opt/almanhal
+
+            # Pull the latest changes
+            git pull origin main
+
+            # (Optional) If using Docker, restart your containers
+            # docker compose down && docker compose up -d
+
+            # Reload Nginx to apply any configuration changes
+            sudo nginx -t && sudo systemctl reload nginx
