@@ -1,12 +1,12 @@
-name: build and bush trucktrack
+name: build and push trucktrack
 on:
   push:
     branches: [ "main" ]
 
 env:
   REGISTRY: ghcr.io
-  # This defaults to your repository name (e.g., yourname/trucktrack)
-  IMAGE_NAME: ${{ github.repository }}
+  # MANUALLY LOWERCASE THE NAME HERE TO FIX THE ERROR
+  IMAGE_NAME: gearatspars-coder/trucktrack
 
 jobs:
   build-and-push:
@@ -17,18 +17,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
+          # This secret is handled automatically by GitHub
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          # Using the lowercase name defined in env
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
