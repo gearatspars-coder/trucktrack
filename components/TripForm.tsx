@@ -33,20 +33,18 @@ const TripForm: React.FC<TripFormProps> = ({ onAddTrip, drivers, manualDrivers, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     
-    // Add validation
     if (!formData.driverName || !formData.truckId) {
-      alert("Please select both a driver and a truck.");
+      alert("Validation Error: Please select both a valid driver and operational vehicle.");
       setIsSubmitting(false);
       return;
     }
 
     onAddTrip(formData);
     
-    // Show success and reset form after a short delay
     setTimeout(() => {
       setFormData({
         ...formData,
@@ -58,159 +56,115 @@ const TripForm: React.FC<TripFormProps> = ({ onAddTrip, drivers, manualDrivers, 
         trafficFines: 0,
       });
       setIsSubmitting(false);
-    }, 2000);
+    }, 1500);
   };
 
+  const inputClass = "w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white focus:outline-none transition-all font-bold text-slate-800 placeholder:text-slate-300";
+  const labelClass = "block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-2";
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 relative">
+    <form onSubmit={handleSubmit} className="bg-white rounded-[3rem] p-12 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.03)] border border-slate-100/80 relative overflow-hidden">
       {isSubmitting && (
-        <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-[2rem]">
-           <div className="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl font-black text-sm animate-pulse">
-             SYNCING TRIP RECORD...
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-[3rem] animate-in fade-in duration-300">
+           <div className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] shadow-2xl flex items-center gap-4">
+             <div className="w-5 h-5 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+             <span className="font-black text-xs uppercase tracking-widest">Synchronizing Record...</span>
            </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-black text-slate-800">{t.newTrip}</h3>
-        <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${isSubmitting ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-          {isSubmitting ? 'Processing Entry' : 'Operational Logging Mode'}
+      <div className="flex items-center justify-between mb-12">
+        <div>
+          <h3 className="text-3xl font-black text-slate-900 tracking-tight">{t.newTrip}</h3>
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Trip Operational Registry</p>
+        </div>
+        <div className="h-14 w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-blue-100">
+          📝
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.date}</label>
-          <input
-            type="date"
-            required
-            value={formData.date}
-            onChange={e => setFormData({ ...formData, date: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          />
+          <label className={labelClass}>{t.date}</label>
+          <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className={inputClass} />
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.driver}</label>
-          <select
-            required
-            value={formData.driverName}
-            onChange={e => setFormData({ ...formData, driverName: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          >
-            <option value="">-- Choose Driver --</option>
+          <label className={labelClass}>{t.driver}</label>
+          <select required value={formData.driverName} onChange={e => setFormData({ ...formData, driverName: e.target.value })} className={`${inputClass} appearance-none`}>
+            <option value="">-- Assign Driver --</option>
             {mergedDrivers.map(d => <option key={d.id} value={d.name}>{d.name} {d.id.startsWith('MAN') ? '(Manual)' : '(GPS)'}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.truck}</label>
-          <select
-            required
-            value={formData.truckId}
-            onChange={e => setFormData({ ...formData, truckId: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          >
-            <option value="">-- Choose Truck --</option>
+          <label className={labelClass}>{t.truck}</label>
+          <select required value={formData.truckId} onChange={e => setFormData({ ...formData, truckId: e.target.value })} className={`${inputClass} appearance-none`}>
+            <option value="">-- Assign Truck --</option>
             {trucks.map(tr => <option key={tr.id} value={tr.plateNumber}>{tr.plateNumber} ({tr.model})</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.customer}</label>
-          <input
-            type="text"
-            required
-            placeholder="Aramco, SABIC, etc."
-            value={formData.customerName}
-            onChange={e => setFormData({ ...formData, customerName: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          />
+          <label className={labelClass}>{t.customer}</label>
+          <input type="text" required placeholder="Organization Name" value={formData.customerName} onChange={e => setFormData({ ...formData, customerName: e.target.value })} className={inputClass} />
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.start}</label>
-          <select
-            value={formData.startPoint}
-            onChange={e => setFormData({ ...formData, startPoint: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          >
+          <label className={labelClass}>{t.start}</label>
+          <select value={formData.startPoint} onChange={e => setFormData({ ...formData, startPoint: e.target.value })} className={`${inputClass} appearance-none`}>
             {cities.map(city => <option key={city} value={city}>{city}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.end}</label>
-          <select
-            value={formData.endPoint}
-            onChange={e => setFormData({ ...formData, endPoint: e.target.value })}
-            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-          >
+          <label className={labelClass}>{t.end}</label>
+          <select value={formData.endPoint} onChange={e => setFormData({ ...formData, endPoint: e.target.value })} className={`${inputClass} appearance-none`}>
             {cities.map(city => <option key={city} value={city}>{city}</option>)}
           </select>
         </div>
         
-        <div className="lg:col-span-3 h-px bg-slate-100 my-2"></div>
+        <div className="lg:col-span-3 h-px bg-slate-50 my-4"></div>
 
         <div>
-          <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">{t.revenue}</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-emerald-300">$</span>
+          <label className="block text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-3 ml-2">{t.revenue}</label>
+          <div className="relative group">
+            <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-emerald-300 text-2xl group-focus-within:text-emerald-500 transition-colors">$</span>
             <input
               type="number"
               value={formData.revenue}
               onChange={e => setFormData({ ...formData, revenue: Number(e.target.value) })}
-              className="w-full pl-8 pr-5 py-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none transition-all font-black text-emerald-700 text-xl"
+              className="w-full pl-12 pr-6 py-6 bg-emerald-50/20 border-2 border-emerald-100/50 rounded-[1.5rem] focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all font-black text-emerald-700 text-3xl"
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
            <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.fuel}</label>
-            <input
-              type="number"
-              value={formData.fuelCost}
-              onChange={e => setFormData({ ...formData, fuelCost: Number(e.target.value) })}
-              className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-            />
+            <label className={labelClass}>{t.fuel}</label>
+            <input type="number" value={formData.fuelCost} onChange={e => setFormData({ ...formData, fuelCost: Number(e.target.value) })} className={inputClass} />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.petty}</label>
-            <input
-              type="number"
-              value={formData.pettyCash}
-              onChange={e => setFormData({ ...formData, pettyCash: Number(e.target.value) })}
-              className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-            />
+            <label className={labelClass}>{t.petty}</label>
+            <input type="number" value={formData.pettyCash} onChange={e => setFormData({ ...formData, pettyCash: Number(e.target.value) })} className={inputClass} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
            <div>
-            <label className="block text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">{t.deductions}</label>
-            <input
-              type="number"
-              value={formData.deductions}
-              onChange={e => setFormData({ ...formData, deductions: Number(e.target.value) })}
-              className="w-full px-5 py-3 bg-red-50/30 border border-red-100 rounded-2xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 focus:outline-none transition-all font-bold text-red-700"
-            />
+            <label className="block text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] mb-3 ml-2">{t.deductions}</label>
+            <input type="number" value={formData.deductions} onChange={e => setFormData({ ...formData, deductions: Number(e.target.value) })} className="w-full px-6 py-5 bg-rose-50/20 border-2 border-rose-100/50 rounded-[1.5rem] focus:ring-8 focus:ring-rose-500/5 focus:border-rose-500 focus:bg-white focus:outline-none transition-all font-bold text-rose-700" />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">{t.fines}*</label>
-            <input
-              type="number"
-              value={formData.trafficFines}
-              onChange={e => setFormData({ ...formData, trafficFines: Number(e.target.value) })}
-              className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all font-bold text-slate-700"
-            />
+            <label className={labelClass}>{t.fines}*</label>
+            <input type="number" value={formData.trafficFines} onChange={e => setFormData({ ...formData, trafficFines: Number(e.target.value) })} className={inputClass} />
           </div>
         </div>
       </div>
       
-      <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-100 pt-8">
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest max-w-xs leading-relaxed">
-          *Logging traffic fines tracks performance but doesn't deduct from gross registry totals.
+      <div className="mt-14 flex flex-col md:flex-row items-center justify-between gap-10 border-t border-slate-50 pt-12">
+        <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] max-w-sm leading-relaxed">
+          Operational Note: All financial logs are audit-ready and archived in the Registry module upon submission.
         </p>
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full md:w-auto px-16 py-6 font-black rounded-2xl shadow-2xl transition-all active:scale-95 uppercase tracking-widest text-sm ${isSubmitting ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-600/30'}`}
+          className={`w-full md:w-auto px-20 py-7 font-black rounded-[2rem] shadow-[0_25px_50px_rgba(37,99,235,0.25)] transition-all active:scale-95 uppercase tracking-[0.3em] text-sm ${isSubmitting ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white'}`}
         >
-          {isSubmitting ? 'Processing...' : t.register}
+          {isSubmitting ? 'Syncing...' : t.register}
         </button>
       </div>
     </form>
