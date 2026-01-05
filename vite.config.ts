@@ -1,16 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
+import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  define: {
-    // Required by @google/genai SDK in many browser environments
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
-  },
+  plugins: [react()],
+  root: './', // Tells Vite index.html is in the root
+  base: '/',
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: 'esbuild'
-  }
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'), // Explicitly link the root html
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'), // Helper for clean imports
+    },
+  },
 });
