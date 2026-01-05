@@ -13,7 +13,8 @@ export const analyzeTrips = async (trips: Trip[]) => {
   Data: ${JSON.stringify(trips.slice(0, 50))}`;
 
   try {
-    // Standard initialization using process.env.API_KEY as per guidelines
+    // The API key MUST be obtained from process.env.API_KEY per SDK requirements.
+    // This is handled via the define block in vite.config.ts.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const response = await ai.models.generateContent({
