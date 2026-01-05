@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTripStore } from './store/tripStore';
 import Layout from './components/Layout';
@@ -93,6 +92,42 @@ const App: React.FC = () => {
     updateTrip(trip);
     setEditingTripId(null);
   };
+
+  if (!currentUser) {
+     return (
+       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+          <form onSubmit={handleLogin} className="w-full max-w-md bg-white rounded-[3rem] p-12 shadow-2xl space-y-8">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white text-3xl font-black mx-auto mb-6 shadow-xl shadow-blue-600/20">TT</div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">System Login</h2>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Fleet Management Portal</p>
+            </div>
+            <div className="space-y-4">
+              <input type="email" placeholder="Email Address" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:outline-none focus:border-blue-600" value={loginForm.email} onChange={e => setLoginForm({...loginForm, email: e.target.value})} required />
+              <input type="password" placeholder="Access Key" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:outline-none focus:border-blue-600" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required />
+            </div>
+            {loginError && <p className="text-rose-500 text-xs font-bold text-center">{loginError}</p>}
+            <button type="submit" className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl hover:bg-blue-700 transition-all uppercase tracking-widest text-sm">Initialize Access</button>
+          </form>
+       </div>
+     );
+  }
+
+  if (showPasswordReset) {
+    return (
+       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+          <form onSubmit={handlePasswordReset} className="w-full max-w-md bg-white rounded-[3rem] p-12 shadow-2xl space-y-8">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-amber-500 rounded-[1.5rem] flex items-center justify-center text-white text-3xl font-black mx-auto mb-6 shadow-xl shadow-amber-500/20">🔑</div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Reset Key</h2>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Update your initial credentials</p>
+            </div>
+            <input type="password" placeholder="Enter New Secure Key" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:outline-none focus:border-blue-600" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
+            <button type="submit" className="w-full py-5 bg-amber-500 text-white font-black rounded-2xl shadow-xl hover:bg-amber-600 transition-all uppercase tracking-widest text-sm">Save & Enter</button>
+          </form>
+       </div>
+    );
+  }
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={() => setCurrentUser(null)} language={language} setLanguage={setLanguage}>

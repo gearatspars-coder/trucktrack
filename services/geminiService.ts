@@ -13,6 +13,7 @@ export const analyzeTrips = async (trips: Trip[]) => {
   Data: ${JSON.stringify(trips.slice(0, 50))}`;
 
   try {
+    // Standard initialization using process.env.API_KEY as per guidelines
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const response = await ai.models.generateContent({
