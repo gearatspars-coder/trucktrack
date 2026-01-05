@@ -13,9 +13,9 @@ export const analyzeTrips = async (trips: Trip[]) => {
   Data: ${JSON.stringify(trips.slice(0, 50))}`;
 
   try {
-    // The API key MUST be obtained from process.env.API_KEY per SDK requirements.
-    // This is handled via the define block in vite.config.ts.
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Standard initialization for standard production Vite builds
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
+    const ai = new GoogleGenAI({ apiKey });
     
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
