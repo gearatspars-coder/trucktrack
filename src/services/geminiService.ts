@@ -13,7 +13,8 @@ export const analyzeTrips = async (trips: Trip[]) => {
   Data: ${JSON.stringify(trips.slice(0, 50))}`;
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Using import.meta.env as requested by user for local Vite build compatibility
+    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
     
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
