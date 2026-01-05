@@ -1,16 +1,20 @@
+
 import React, { useState } from 'react';
-import { Language, Driver, User, UserRole } from '../types';
+import { Language, Driver, User, UserRole, Truck } from '../types';
 import { translations } from '../i18n';
 import { syncStateToDrive } from '../services/googleDriveService';
 
 interface SettingsProps {
   language: Language;
   manualDrivers: Driver[];
+  manualTrucks: Truck[];
   manualCities: string[];
   trips: any[];
   users: User[];
   onAddDriver: (d: Omit<Driver, 'id'>) => void;
   onRemoveDriver: (id: string) => void;
+  onAddTruck: (t: Omit<Truck, 'id'>) => void;
+  onRemoveTruck: (id: string) => void;
   onAddCity: (city: string) => void;
   onRemoveCity: (city: string) => void;
   currentUserRole?: UserRole;
@@ -19,12 +23,13 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({
-  language, manualDrivers, manualCities, trips, users,
-  onAddDriver, onRemoveDriver, onAddCity, onRemoveCity,
+  language, manualDrivers, manualTrucks, manualCities, trips, users,
+  onAddDriver, onRemoveDriver, onAddTruck, onRemoveTruck, onAddCity, onRemoveCity,
   currentUserRole, onAddUser, onRemoveUser
 }) => {
   const t = translations[language];
   const [newDriver, setNewDriver] = useState({ name: '', licenseNumber: '' });
+  const [newTruck, setNewTruck] = useState({ plateNumber: '', model: '' });
   const [newCity, setNewCity] = useState('');
   const [newUser, setNewUser] = useState({ email: '', role: 'viewer' as UserRole, password: '' });
   
@@ -46,6 +51,15 @@ const Settings: React.FC<SettingsProps> = ({
     }
   };
 
+  const handleAddTruck = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTruck.plateNumber.trim()) {
+      onAddTruck(newTruck);
+      setNewTruck({ plateNumber: '', model: '' });
+      alert("Vehicle successfully added to fleet.");
+    }
+  };
+
   const handleAddCity = (e: React.FormEvent) => {
     e.preventDefault();
     if (newCity.trim()) {
@@ -58,7 +72,6 @@ const Settings: React.FC<SettingsProps> = ({
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (newUser.email.trim()) {
-      // Logic: Accountant can ONLY add viewers
       const roleToAssign = isAccountant ? 'viewer' : newUser.role;
       onAddUser({ ...newUser, role: roleToAssign as UserRole });
       setNewUser({ email: '', role: 'viewer', password: '' });
@@ -77,14 +90,14 @@ const Settings: React.FC<SettingsProps> = ({
     }
 
     setIsSyncing(true);
-    const state = { manualDrivers, manualCities, trips, users };
+    const state = { manualDrivers, manualTrucks, manualCities, trips, users };
     const time = await syncStateToDrive(state);
     setLastBackup(time);
     setIsSyncing(false);
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       {!canManageOps && (
         <div className="bg-amber-50 border border-amber-200 p-8 rounded-3xl text-amber-700 font-bold text-center shadow-inner">
           <span className="block text-3xl mb-3">🔒</span>
@@ -93,7 +106,7 @@ const Settings: React.FC<SettingsProps> = ({
       )}
 
       {canManageOps && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Driver Management */}
           <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-100 flex flex-col">
             <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
@@ -112,6 +125,27 @@ const Settings: React.FC<SettingsProps> = ({
                 </div>
               ))}
               {manualDrivers.length === 0 && <p className="text-center py-10 text-slate-300 font-bold text-xs">Manual Registry is Empty.</p>}
+            </div>
+          </div>
+
+          {/* Truck Management */}
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-100 flex flex-col">
+            <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
+              <span className="text-indigo-600">🚛</span> {language === 'ar' ? 'إدارة الشاحنات' : 'Manage Trucks'}
+            </h3>
+            <form onSubmit={handleAddTruck} className="flex gap-2 mb-8">
+              <input type="text" required placeholder={language === 'ar' ? 'رقم اللوحة' : 'Plate Number'} value={newTruck.plateNumber} onChange={e => setNewTruck({ ...newTruck, plateNumber: e.target.value })} className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-indigo-600" />
+              <input type="text" placeholder={language === 'ar' ? 'الموديل' : 'Model (e.g. Scania)'} value={newTruck.model} onChange={e => setNewTruck({ ...newTruck, model: e.target.value })} className="w-40 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-indigo-600" />
+              <button type="submit" className="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all">{t.addBtn}</button>
+            </form>
+            <div className="flex-1 overflow-y-auto max-h-[300px] space-y-4 pr-2 custom-scrollbar">
+              {manualTrucks.map(truck => (
+                <div key={truck.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group border border-transparent hover:border-indigo-100 transition-all">
+                  <div><p className="font-black text-slate-800 text-sm">{truck.plateNumber}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{truck.model || 'Unknown Model'}</p></div>
+                  <button onClick={() => { if(confirm("Remove truck from fleet?")) onRemoveTruck(truck.id) }} className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all">🗑️</button>
+                </div>
+              ))}
+              {manualTrucks.length === 0 && <p className="text-center py-10 text-slate-300 font-bold text-xs">No manual trucks registered.</p>}
             </div>
           </div>
 
